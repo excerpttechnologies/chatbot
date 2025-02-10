@@ -135,41 +135,6 @@ try:
 except Exception as e:
     logger.error(f"Error loading model files: {str(e)}")
     raise
-
-@app.route('/api/chat', methods=['POST'])
-def chat():
-    logger.info("Received chat request")
-    try:
-        data = request.json
-        logger.info(f"Request data: {data}")
-        
-        message = data.get('message', '')
-        if not message:
-            return jsonify({
-                'response': "No message provided",
-                'confidence': 0
-            }), 400
-        
-        # Get prediction
-        ints = predict_class(message)
-        logger.info(f"Prediction complete. Intent: {ints}")
-        
-        # Get response
-        response = get_response(ints, intents)
-        logger.info(f"Generated response: {response}")
-        
-        return jsonify({
-            'response': response,
-            'confidence': float(ints[0]['probability']) if ints else 0
-        })
-    
-    except Exception as e:
-        logger.error(f"Error in chat endpoint: {str(e)}")
-        return jsonify({
-            'response': "I encountered an error. Please try again.",
-            'confidence': 0
-        }), 500
-
 # Your existing helper functions remain the same
 def clean_up_sentence(sentence):
     sentence_words = nltk.word_tokenize(sentence)
@@ -209,6 +174,41 @@ def get_response(intents_list, intents_json):
             result = random.choice(i['responses'])
             break
     return result
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    logger.info("Received chat request")
+    try:
+        data = request.json
+        logger.info(f"Request data: {data}")
+        
+        message = data.get('message', '')
+        if not message:
+            return jsonify({
+                'response': "No message provided",
+                'confidence': 0
+            }), 400
+        
+        # Get prediction
+        ints = predict_class(message)
+        logger.info(f"Prediction complete. Intent: {ints}")
+        
+        # Get response
+        response = get_response(ints, intents)
+        logger.info(f"Generated response: {response}")
+        
+        return jsonify({
+            'response': response,
+            'confidence': float(ints[0]['probability']) if ints else 0
+        })
+    
+    except Exception as e:
+        logger.error(f"Error in chat endpoint: {str(e)}")
+        return jsonify({
+            'response': "I encountered an error. Please try again.",
+            'confidence': 0
+        }), 500
+
 
 if __name__ == '__main__':
     logger.info("Starting Flask server...")
